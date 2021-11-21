@@ -1,0 +1,3 @@
+var documenterSearchIndex = {"docs":
+[{"location":"usage/#Permittivity.jl","page":"Usage","title":"Permittivity.jl","text":"","category":"section"},{"location":"usage/","page":"Usage","title":"Usage","text":"Modules = [Permittivity]","category":"page"},{"location":"#Permittivity","page":"Home","title":"Permittivity","text":"","category":"section"},{"location":"#Examples","page":"Home","title":"Examples","text":"","category":"section"},{"location":"","page":"Home","title":"Home","text":"julia> using Permittivity\n","category":"page"},{"location":"#Index","page":"Home","title":"Index","text":"","category":"section"},{"location":"","page":"Home","title":"Home","text":"","category":"page"}]
+}
