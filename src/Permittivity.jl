@@ -16,7 +16,7 @@ abstract type Composite <: Dispersive end
 abstract type Tabulated <: Dispersive end
 
 
-include("models.jl")
+include("model.jl")
 include("composite.jl")
 include("tabulated.jl")
 

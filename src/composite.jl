@@ -6,8 +6,8 @@ The multi-pole Debye model with static conductivity:
 \varepsilon (\omega) = \varepsilon_\infty  + \sum \limits_i^N \frac{\Delta\varepsilon_i}{1 + j \omega \tau_i} + \frac{\sigma_s}{j \omega \varepsilon_0}
 ```
 where
-- $\sigma_s$ the static conductivity
-- $\Delta\varepsilon_i$ is the change in permittivity due to the ith dispersion
+- ``\sigma_s`` the static conductivity
+- ``\Delta\varepsilon_i`` is the change in permittivity due to the ith dispersion
 
 """
 struct MultiPoleDebyeModel{T<:AbstractFloat} <: Composite
