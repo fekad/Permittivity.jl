@@ -1,5 +1,6 @@
-# Permittivity.jl
+# Models
 
 ```@autodocs
 Modules = [Permittivity]
+Pages = ["models.jl"]
 ```
