@@ -20,7 +20,7 @@ where ``\varepsilon`` can be real or complex value.
 omega = 0:.1:10
 model = DielectricConstant(1.)
 
-ε = permittivity.(model, omega)
+ε = model.(omega)
 
 plot(omega, real(ε), label="Re(ε(ω))")
 ```
@@ -29,8 +29,7 @@ struct DielectricConstant{T<:Number}  <: Dielectric
     eps::T
 end
 
-permittivity(m::DielectricConstant) = m.eps
-permittivity(m::DielectricConstant, omega) = permittivity(m)
+(m::DielectricConstant)(omega) = permittivity(m)
 
 
 @doc raw"""
@@ -49,7 +48,7 @@ The dielectric model includes perfect (lossless) dielectrics, conductive (lossy)
 omega = 0:.1:10
 model = DielectricModel(1., 1.)
 
-ε = permittivity.(model, omega)
+ε = model.(omega)
 
 # plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], layout=(2,1))
 p1 = plot(omega, real(ε), label="Re(ε(ω))")
@@ -62,7 +61,7 @@ struct DielectricModel{T<:AbstractFloat} <: Dielectric
     sigma::T
 end
 
-permittivity(m::DielectricModel, omega) = m.eps_inf + m.sigma / (im *  omega * esp_0)
+(m::DielectricModel)(omega) = m.eps_inf + m.sigma / (im *  omega * esp_0)
 
 
 
@@ -108,8 +107,7 @@ struct DebyeModel{T<:AbstractFloat} <: Dispersive
 end
 
 # TODO: minus or plus sign at (1 + - im * omega * m.tau)
-permittivity(m::DebyeModel, omega) = m.eps_inf + (eps_s - eps_inf) / (1 - im * omega * m.tau);
-
+(m::DebyeModel)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 - im * omega * m.tau);
 
 
 
@@ -138,7 +136,7 @@ struct ColeColeModel{T<:AbstractFloat} <: Dispersive
   alpha::T
 end
 
-permittivity(m::ColeColeModel, omega) = m.eps_inf + (eps_s - eps_inf) / (1 + (im * omega * m.tau)^(1 - m.alpha))
+(m::ColeColeModel)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 + (im * omega * m.tau)^(1 - m.alpha))
 
 
 
@@ -165,7 +163,7 @@ struct ColeDavidson{T<:AbstractFloat} <: Dispersive
   beta::T
 end
 
-permittivity(m::ColeDavidson, omega) = m.eps_inf + (eps_s - eps_inf) / (1 + im * omega * m.tau)^m.beta
+(m::ColeDavidson)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 + im * omega * m.tau)^m.beta
 
 
 @doc raw"""
@@ -199,7 +197,7 @@ struct HavriliakNegamiModel{T<:AbstractFloat} <: Dispersive
 end
 
 
-permittivity(m::HavriliakNegamiModel, omega) = m.eps_inf + (eps_s - eps_inf) / (1 + (im * omega * m.tau)^m.alpha)^m.beta
+(m::HavriliakNegamiModel)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 + (im * omega * m.tau)^m.alpha)^m.beta
 
 
 @doc raw"""
@@ -226,7 +224,7 @@ struct FreeElectronPlasmaModel <: Dispersive
     omega_p
 end
 
-permittivity(m::FreeElectronPlasmaModel, omega) = 1 - m.omega_p^2 / omega^2;
+(m::FreeElectronPlasmaModel)(omega) = 1 - m.omega_p^2 / omega^2;
 
 
 @doc raw"""
@@ -261,7 +259,7 @@ struct DrudeModel{T<:AbstractFloat} <: Dispersive
     gamma::T
 end
 
-permittivity(m::DrudeModel, omega) = 1 - m.omega_p^2 / (omega^2 + im * m.gamma * omega);
+(m::DrudeModel)(omega) = 1 - m.omega_p^2 / (omega^2 + im * m.gamma * omega);
 # static low frequency
 offset(m::DrudeModel) = 1 - m.omega_p^2 / m.gamma^2
 cross(m::DrudeModel) = sqrt(m.omega_p^2 - m.gamma^2)
@@ -309,7 +307,7 @@ peak(m::DrudeModel) = Inf
 #     gamma::T
 # end
 #
-# permittivity(m::LorentzModel, omega) = 1 + m.omega_p^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
+# (m::LorentzModel)(omega) = 1 + m.omega_p^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
 #
 # # static ε (low frequency)
 # offset_static(m::LorentzModel) = 1 + m.omega_p^2 / m.omega_0^2
@@ -327,7 +325,7 @@ peak(m::DrudeModel) = Inf
 #     gamma::T
 # end
 #
-# permittivity(m::LorentzMode3, omega) = m.omega_p^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
+# (m::LorentzMode3)(omega) = m.omega_p^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
 #
 # # static ε (low frequency)
 # offset_static(m::LorentzMode3) = m.omega_p^2 / m.omega_0^2
@@ -360,7 +358,7 @@ peak(m::DrudeModel) = Inf
 #     gamma::T
 # end
 #
-# permittivity(m::LorentzModel2, omega) =  m.eps_inf + (m.eps_s - m.eps_inf) * m.omega_0^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
+# (m::LorentzModel2)(omega) =  m.eps_inf + (m.eps_s - m.eps_inf) * m.omega_0^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
 #
 # # static ε (low frequency)
 # offset_static(m::LorentzModel2) = m.eps_s
