@@ -44,15 +44,15 @@ In many materials the polarizability starts to saturate at high values of electr
 The standard definition of nonlinear susceptibilities in SI units is via a Taylor expansion of the polarization's reaction to electric field:
 ```math
  P = P_0 + \varepsilon_0 \chi^{(1)} E + \varepsilon_0 \chi^{(2)} E^2 + \varepsilon_0 \chi^{(3)} E^3 + \cdots.
- ```
+```
 
 (Except in ferroelectric materials, the built-in polarization is zero, ``P_0 = 0``.)
 The first susceptibility term, ``\chi^{(1)}``, corresponds to the linear susceptibility described above. While this first term is dimensionless, the subsequent nonlinear susceptibilities ``\chi^{(n)}`` have units of ``(m/V)^{n−1}``.
 
 The nonlinear susceptibilities can be generalized to anisotropic materials in which the susceptibility is not uniform in every direction.
 In these materials, each susceptibility ``\chi^{(n)}`` becomes an ``(n + 1)``-degree tensor.
-
-```mathEg: to describe anisotropic media a polarizability rank two tensor ``\alpha`` is defined,
+Eg: to describe anisotropic media a polarizability rank two tensor ``\alpha`` is defined,
+```math
 \mathbb{\alpha} =
 \begin{bmatrix}
 \alpha_{xx} & \alpha_{xy} & \alpha_{xz} \\
@@ -103,6 +103,7 @@ This discrepancy is taken into account by the Clausius–Mossotti relation (belo
 - Permittivity as a function of frequency can take on real or complex values.
 - In SI units, permittivity is measured in farads per meter (``F/m`` or ``A^2 s^4 kg^{−1} m^{−3}``). The displacement field ``\mathbf{D}`` is measured in units of coulombs per square meter (``C/m^2``), while the electric field ``\mathbf{E}`` is measured in volts per meter (``V/m``).
 - ``\mathbf{D}`` and ``\mathbf{E}`` describe the interaction between charged objects. ``\mathbf{D}`` is related to the charge densities associated with this interaction, while ``\mathbf{E}`` is related to the forces and potential differences.
-```math- The permittivity ``\varepsilon`` and permeability ``\mu`` of a medium together determine the phase velocity ``v = \frac{c}{n}`` of electromagnetic radiation through that medium:
-\varepsilon \mu = \frac{1}{v^2}.
-```
+- The permittivity ``\varepsilon`` and permeability ``\mu`` of a medium together determine the phase velocity ``v = \frac{c}{n}`` of electromagnetic radiation through that medium:
+  ```math
+  \varepsilon \mu = \frac{1}{v^2}.
+  ```
