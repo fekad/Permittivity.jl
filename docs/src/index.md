@@ -3,12 +3,6 @@
 
 # Material models
 
-- Permittivity
-- Electric susceptibility
-
-[source](http://www.fdtdxx.com/features/material-models)
-[article](https://www.researchgate.net/publication/249651487_Free-Space_Transmission_Method_for_the_Characterization_of_Dielectric_and_Magnetic_Materials_at_Microwave_Frequencies)
-
 ## Dielectrics Materials
 
 Dielectrics and Conductors: This includes perfect (lossless) dielectrics, conductive (lossy) materials, and perfect electric conductors.
