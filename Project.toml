@@ -1,7 +1,7 @@
 name = "Permittivity"
 uuid = "b8566cb2-eaba-4de5-89c7-0c27970a52de"
 authors = ["Adam Fekete <adam.fekete@unamur.be>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Dierckx = "39dd38d3-220a-591b-8e3c-4c3a8c710a94"
