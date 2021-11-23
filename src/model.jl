@@ -1,10 +1,3 @@
-
-Broadcast.broadcastable(m::AbstractPermittivity) = Ref(m)
-# https://github.com/JuliaLang/julia/pull/35591#issuecomment-619272218
-
-const esp_0 = 1.
-
-
 @doc raw"""
     DielectricConstant(eps)
 
@@ -25,7 +18,7 @@ model = DielectricConstant(1.)
 plot(omega, real(ε), label="Re(ε(ω))")
 ```
 """
-struct DielectricConstant{T<:Number}  <: Dielectric
+struct DielectricConstant{T<:Number} <: Dielectric
     eps::T
 end
 
@@ -61,7 +54,7 @@ struct DielectricModel{T<:AbstractFloat} <: Dielectric
     sigma::T
 end
 
-(m::DielectricModel)(omega) = m.eps_inf + m.sigma / (im *  omega * esp_0)
+(m::DielectricModel)(omega) = m.eps_inf + m.sigma / (im * omega * eps_0)
 
 
 
@@ -111,7 +104,7 @@ end
 
 
 
-@doc  raw"""
+@doc raw"""
     ColeColeModel(eps_s, eps_inf, tau, alpha)
 
 The Cole–Cole equation is a relaxation model that is often used to describe dielectric relaxation in polymers.
@@ -130,10 +123,10 @@ The exponent parameter ``\alpha``, which takes a value between 0 and 1, allows t
 
 """
 struct ColeColeModel{T<:AbstractFloat} <: Dispersive
-  eps_s::T
-  eps_inf::T
-  tau::T
-  alpha::T
+    eps_s::T
+    eps_inf::T
+    tau::T
+    alpha::T
 end
 
 (m::ColeColeModel)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 + (im * omega * m.tau)^(1 - m.alpha))
@@ -157,10 +150,10 @@ where
 
 """
 struct ColeDavidson{T<:AbstractFloat} <: Dispersive
-  eps_s::T
-  eps_inf::T
-  tau::T
-  beta::T
+    eps_s::T
+    eps_inf::T
+    tau::T
+    beta::T
 end
 
 (m::ColeDavidson)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 + im * omega * m.tau)^m.beta
@@ -189,11 +182,11 @@ Depending on application, the Fourier transform of the stretched exponential fun
 For ``\beta = 1`` the Havriliak–Negami equation reduces to the Cole–Cole equation, for ``\alpha=1`` to the Cole–Davidson equation.
 """
 struct HavriliakNegamiModel{T<:AbstractFloat} <: Dispersive
-  eps_s::T
-  eps_inf::T
-  tau::T
-  alpha::T
-  beta::T
+    eps_s::T
+    eps_inf::T
+    tau::T
+    alpha::T
+    beta::T
 end
 
 
