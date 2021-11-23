@@ -1,6 +1,11 @@
-# Models with arbitrary accuracy 
+# Models with arbitrary accuracy
 
-```@autodocs
-Modules = [Permittivity]
-Pages = ["composite.jl", "tabulated.jl"]
+
+```@docs
+MultiPoleDebyeModel
+MultiLorentzPoleModel
+```
+
+```@docs
+PermittivityTable
 ```

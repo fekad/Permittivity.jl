@@ -1,6 +1,7 @@
 module Permittivity
 
-# import Base: size, length
+using  PhysicalConstants.CODATA2018: c_0, ε_0, μ_0
+const eps_0 = 1.
 
 # Interpolation
 using Dierckx: Spline1D
@@ -15,11 +16,15 @@ abstract type Dispersive <: AbstractPermittivity end
 abstract type Composite <: Dispersive end
 abstract type Tabulated <: Dispersive end
 
-
+export DielectricConstant, DielectricModel, DebyeModel, ColeColeModel, ColeDavidson, HavriliakNegamiModel, FreeElectronPlasmaModel, DrudeModel
+# LorentzModel
 include("model.jl")
-include("composite.jl")
-include("tabulated.jl")
 
+export MultiPoleDebyeModel, MultiLorentzPoleModel
+include("composite.jl")
+
+export PermittivityTable
+include("tabulated.jl")
 
 
 end # module
