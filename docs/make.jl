@@ -11,6 +11,7 @@ makedocs(
     modules = [Permittivity],
     pages=[
         "Home" => "index.md",
+        "Theory" => "theory.md",
         "Models" => "model.md",
         "Composites" => "composite.md"
     ]

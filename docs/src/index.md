@@ -33,6 +33,9 @@ The arbitrarily-accurate (albeit, perhaps unphysical) fits to experimental optic
 - Drude model in combination with multiple Lorentz oscillator poles
 - Interpolation of tabulated data
 
+## Nonlocal Materials
+
+Spatially-nonlocal effects arise when electrons are confined to small regions of space. Examples include junctions between structures, the areas around the edges of small structures, etc. These can significantly modify the electromagnetic fields, relative to classical (local) effects.
 
 
 ### Examples
