@@ -16,8 +16,7 @@ abstract type Dispersive <: AbstractPermittivity end
 abstract type Composite <: Dispersive end
 abstract type Tabulated <: Dispersive end
 
-export DielectricConstant, DielectricModel, DebyeModel, ColeColeModel, ColeDavidson, HavriliakNegamiModel, FreeElectronPlasmaModel, DrudeModel
-# LorentzModel
+export DielectricConstant, DielectricModel, DebyeModel, ColeColeModel, ColeDavidson, HavriliakNegamiModel, FreeElectronPlasmaModel, DrudeModel, LorentzModel
 include("model.jl")
 
 export MultiPoleDebyeModel, MultiLorentzPoleModel
