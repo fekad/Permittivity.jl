@@ -1,7 +1,7 @@
 module Permittivity
 
-using  PhysicalConstants.CODATA2018: c_0, ε_0, μ_0
-const eps_0 = 1.
+using Unitful: ustrip
+using PhysicalConstants.CODATA2018: ε_0
 
 # Interpolation
 using Dierckx: Spline1D

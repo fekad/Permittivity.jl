@@ -1,52 +1,63 @@
 @doc raw"""
-    DielectricConstant(eps)
+    DielectricConstant(eps_inf)
 
 The dielectric constant:
 ```math
-\varepsilon (\omega) = \varepsilon
+\varepsilon (\omega) = \varepsilon_\infty
 ```
 where ``\varepsilon`` can be real or complex value.
 
 
-# Example:
+# Example
 ```julia-repl
-omega = 0:.1:10
-model = DielectricConstant(1.)
+eps_inf = 5.
 
-ε = model.(omega)
+omega = exp10.(-2:.1:3)
 
-plot(omega, real(ε), label="Re(ε(ω))")
+m = DielectricConstant(eps_inf)
+ε = m.(omega)
+
+plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1), xaxis=:log10)
 ```
 """
 struct DielectricConstant{T<:Number} <: Dielectric
-    eps::T
+    eps_inf::T
 end
 
-(m::DielectricConstant)(omega) = permittivity(m)
+(m::DielectricConstant)(omega) = m.eps_inf
+
+eps_s(m::DielectricConstant) = m.eps_inf
+eps_inf(m::DielectricConstant) = m.eps_inf
 
 
+# Note: sign difference! https://en.m.wikipedia.org/wiki/Relative_permittivity#Lossy_medium
 @doc raw"""
     DielectricModel(eps_inf, sigma)
 
 The dielectric model includes perfect (lossless) dielectrics, conductive (lossy) materials, and perfect electric conductors.
 ```math
-\varepsilon (\omega) = \varepsilon_\infty + \frac{\sigma}{j \omega \varepsilon_0}
-```
-```math
-\varepsilon (\omega) = \varepsilon_\infty + \frac{\sigma}{j \omega} = \varepsilon_\infty -j \frac{\sigma}{\omega}
+\varepsilon (\omega) = \varepsilon_\infty + \frac{\sigma}{\omega \varepsilon_0}
 ```
 
-# Example:
-```julia-repl
-omega = 0:.1:10
-model = DielectricModel(1., 1.)
+# Example
+```@example
+using Plots
+plotlyjs()
 
-ε = model.(omega)
+using Permittivity
 
-# plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], layout=(2,1))
-p1 = plot(omega, real(ε), label="Re(ε(ω))")
-p2 = plot(omega, imag(ε), label="Im(ε(ω))", legend=:bottomright)
-plot(p1, p2, layout = @layout [a; b])
+using PhysicalConstants.CODATA2018: ε_0
+using Unitful: ustrip
+
+eps_inf = 5.
+sigma = 1. * ustrip(ε_0)
+
+omega = exp10.(-2:.1:3)
+
+m = DielectricModel(eps_inf, sigma)
+ε = m.(omega)
+
+plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1), xaxis=:log10)
 ```
 """
 struct DielectricModel{T<:AbstractFloat} <: Dielectric
@@ -54,8 +65,10 @@ struct DielectricModel{T<:AbstractFloat} <: Dielectric
     sigma::T
 end
 
-(m::DielectricModel)(omega) = m.eps_inf + m.sigma / (im * omega * eps_0)
+(m::DielectricModel)(omega) = m.eps_inf + im * m.sigma / (omega * ustrip(ε_0))
 
+eps_s(m::DielectricModel) = m.eps_inf
+eps_inf(m::DielectricModel) = m.eps_inf
 
 
 @doc raw"""
@@ -73,24 +86,26 @@ where
 
 Separating into the real part ``\varepsilon'`` and the imaginary part ``\varepsilon''`` of the complex dielectric permittivity yields:
 ```math
-\begin{align}
-   \varepsilon' &= \varepsilon_\infty + \frac{\varepsilon_s - \varepsilon_\infty}{1 + \omega^2\tau^2} \\[3pt]
-  \varepsilon'' &= \frac{(\varepsilon_s - \varepsilon_\infty)\omega\tau}{1+\omega^2\tau^2}
-\end{align}
+\begin{align*}
+    \varepsilon' &= \varepsilon_\infty + \frac{\varepsilon_s - \varepsilon_\infty}{1 + \omega^2 \tau^2} \\
+    \varepsilon'' &= \frac{(\varepsilon_s - \varepsilon_\infty) \omega \tau}{1 + \omega^2 \tau^2}
+\end{align*}
 ```
 
-# Example:
+# Example
 ```julia-repl
-# omega = 0:.1:10
-omega = exp10.(-2:.1:2)
-eps_s = 6.
-eps_inf = 0.
+using Plots # hide
+
+eps_s = 10.
+eps_inf = 5.
 tau = 1.
 
-m = DebyeModel(eps_s, eps_inf, tau)
-ε = permittivity.(m, omega)
+omega = exp10.(-2:.1:3)
 
-plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], layout=(2, 1) ,)
+m = DebyeModel(eps_s, eps_inf, tau)
+ε = m.(omega)
+
+plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1), xaxis=:log10);
 ```
 """
 struct DebyeModel{T<:AbstractFloat} <: Dispersive
@@ -99,10 +114,10 @@ struct DebyeModel{T<:AbstractFloat} <: Dispersive
     tau::T
 end
 
-# TODO: minus or plus sign at (1 + - im * omega * m.tau)
-(m::DebyeModel)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 - im * omega * m.tau);
+(m::DebyeModel)(omega) = m.eps_inf + (m.eps_s - m.eps_inf) / (1 - im * omega * m.tau);
 
-
+eps_s(m::DebyeModel) = m.eps_s
+eps_inf(m::DebyeModel) = m.eps_inf
 
 @doc raw"""
     ColeColeModel(eps_s, eps_inf, tau, alpha)
@@ -111,7 +126,7 @@ The Cole–Cole equation is a relaxation model that is often used to describe di
 
 The complex dielectric constant is given by the equation
 ```math
-\varepsilon(\omega) = \varepsilon_\infty + \frac{\varepsilon_s - \varepsilon_\infty}{1 + (j \omega\tau)^{1 - \alpha}}
+\varepsilon(\omega) = \varepsilon_\infty + \frac{\varepsilon_s - \varepsilon_\infty}{1 + (j \omega\tau)^{\alpha}}
 ```
 where
 - ``\varepsilon_s`` and ``\varepsilon_\infty`` are the "static" and "infinite frequency" dielectric constants,
@@ -119,7 +134,22 @@ where
 - ``\tau`` is a time constant and
 - ``\alpha`` is the exponent parameter.
 
-The exponent parameter ``\alpha``, which takes a value between 0 and 1, allows the description of different spectral shapes. When ``\alpha=0``, the Cole-Cole model reduces to the Debye model. When ``\alpha>0``, the relaxation is ''stretched''. That is, it extends over a wider range on a logarithmic ``\omega`` scale than Debye relaxation.
+The exponent parameter ``\alpha``, which takes a value between 0 and 1, allows the description of different spectral shapes. When ``\alpha=1``, the Cole-Cole model reduces to the Debye model. When ``\alpha<0``, the relaxation is ''stretched''. That is, it extends over a wider range on a logarithmic ``\omega`` scale than Debye relaxation.
+
+# Example
+```julia-repl
+eps_s = 10.
+eps_inf = 5.
+tau = 1.
+alpha = 0.8
+
+omega = exp10.(-2:.1:3)
+
+m = ColeColeModel(eps_s, eps_inf, tau, alpha)
+ε = m.(omega)
+
+plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1), xaxis=:log10)
+```
 
 """
 struct ColeColeModel{T<:AbstractFloat} <: Dispersive
@@ -129,8 +159,10 @@ struct ColeColeModel{T<:AbstractFloat} <: Dispersive
     alpha::T
 end
 
-(m::ColeColeModel)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 + (im * omega * m.tau)^(1 - m.alpha))
+(m::ColeColeModel)(omega) = m.eps_inf + (m.eps_s - m.eps_inf) / (1 - (im * omega * m.tau)^m.alpha)
 
+eps_s(m::ColeColeModel) = m.eps_s
+eps_inf(m::ColeColeModel) = m.eps_inf
 
 
 @doc raw"""
@@ -147,6 +179,20 @@ where
 - ``\tau`` is the characteristic relaxation time of the medium and
 - ``\beta`` paramteres of the asymmetry.
 
+# Example
+```julia-repl
+eps_s = 10.
+eps_inf = 5.
+tau = 1.
+beta = 0.6
+
+omega = exp10.(-2:.1:3)
+
+m = ColeDavidson(eps_s, eps_inf, tau, beta)
+ε = m.(omega)
+
+plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1), xaxis=:log10)
+```
 
 """
 struct ColeDavidson{T<:AbstractFloat} <: Dispersive
@@ -156,7 +202,10 @@ struct ColeDavidson{T<:AbstractFloat} <: Dispersive
     beta::T
 end
 
-(m::ColeDavidson)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 + im * omega * m.tau)^m.beta
+(m::ColeDavidson)(omega) = m.eps_inf + (m.eps_s - m.eps_inf) / (1 - im * omega * m.tau)^m.beta
+
+eps_s(m::ColeDavidson) = m.eps_s
+eps_inf(m::ColeDavidson) = m.eps_inf
 
 
 @doc raw"""
@@ -180,6 +229,22 @@ The terms ``\alpha`` and ``\beta`` are empirical parameters and their values are
 Depending on application, the Fourier transform of the stretched exponential function can be a viable alternative that has one parameter less.
 
 For ``\beta = 1`` the Havriliak–Negami equation reduces to the Cole–Cole equation, for ``\alpha=1`` to the Cole–Davidson equation.
+
+# Examples
+```julia-repl
+eps_s = 10.
+eps_inf = 5.
+tau = 1.
+alpha = .8
+beta = .6
+
+omega = exp10.(-2:.1:3)
+
+m = HavriliakNegamiModel(eps_s, eps_inf, tau, alpha, beta)
+ε = m.(omega)
+
+plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1), xaxis=:log10)
+```
 """
 struct HavriliakNegamiModel{T<:AbstractFloat} <: Dispersive
     eps_s::T
@@ -189,8 +254,10 @@ struct HavriliakNegamiModel{T<:AbstractFloat} <: Dispersive
     beta::T
 end
 
+(m::HavriliakNegamiModel)(omega) = m.eps_inf + (m.eps_s - m.eps_inf) / (1 - (im * omega * m.tau)^m.alpha)^m.beta
 
-(m::HavriliakNegamiModel)(omega) = m.eps_inf + (eps_s - eps_inf) / (1 + (im * omega * m.tau)^m.alpha)^m.beta
+eps_s(m::HavriliakNegamiModel) = m.eps_s
+eps_inf(m::HavriliakNegamiModel) = m.eps_inf
 
 
 @doc raw"""
@@ -201,16 +268,16 @@ The Dielectric constant of free electron plasma:
 \varepsilon (\omega) = 1 - \frac{\omega_p^2}{\omega^2}
 ```
 
-# Example:
+# Example
 ```julia-repl
-omega = 0:.1:10
-omega_p = 3.
-gamma = 1.
+omega_p = 5.
+
+omega = exp10.(-1:.1:2)
 
 m = FreeElectronPlasmaModel(omega_p)
-ε = permittivity.(m, omega)
+ε = m.(omega)
 
-plot(omega, ε, label="Re(ε(ω))", ylimits=[-5, 1], legend=:bottomright)
+plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1), xaxis=:log10)
 ```
 """
 struct FreeElectronPlasmaModel <: Dispersive
@@ -219,9 +286,12 @@ end
 
 (m::FreeElectronPlasmaModel)(omega) = 1 - m.omega_p^2 / omega^2;
 
+eps_s(::FreeElectronPlasmaModel) = -Inf
+eps_inf(::FreeElectronPlasmaModel) = 1
+
 
 @doc raw"""
-    DrudeModel(omega_p, gamma)
+    DrudeModel(eps_inf, omega_p, gamma)
 
 The Drude model describes intraband electron motion.
 ```math
@@ -232,155 +302,85 @@ note:
 - ``\gamma = \Gamma = \tau^{-1}``
 - Lorentz mode wit ``\omega_0=0``
 
-# Example:
+# Example
 ```julia
-omega = 0:.01:10
-omega_p = 3.
+eps_inf = 5.
+omega_p = 5.
 gamma = 1.
 
-m = DrudeModel(omega_p, gamma)
-ε = permittivity.(m, omega)
+omega = exp10.(-1:.01:2)
 
-# plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], layout=(2,1) )
-p1 = plot(omega, real(ε), label="Re(ε(ω))", legend=:bottomright)
-p2 = plot(omega, imag(ε), label="Im(ε(ω))")
-plot(p1, p2, layout = @layout [a; b])
+m = DrudeModel(eps_inf, omega_p, gamma)
+ε = m.(omega)
+
+plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1), xaxis=:log10)
 ```
 """
-struct DrudeModel{T<:AbstractFloat} <: Dispersive
+struct DrudeModel{T<:AbstractFloat}
+    eps_inf::T
     omega_p::T
     gamma::T
 end
 
-(m::DrudeModel)(omega) = 1 - m.omega_p^2 / (omega^2 + im * m.gamma * omega);
-# static low frequency
-offset(m::DrudeModel) = 1 - m.omega_p^2 / m.gamma^2
-cross(m::DrudeModel) = sqrt(m.omega_p^2 - m.gamma^2)
-peak(m::DrudeModel) = Inf
+(m::DrudeModel)(omega) = m.eps_inf - m.omega_p^2 / (omega^2 + im * m.gamma * omega);
 
-#
-# @doc raw"""
-#     LorentzModel(omega_p, omega_0, gamma)
-#
-# The Lorentz oscillator model describes interband electron transitions.
-#
-# ```math
-# \varepsilon (\omega) = 1 + \frac{\Delta\varepsilon_p \omega_p^2}{\omega_p^2 - \omega(\omega + j 2\delta)}
-# ```
-# ??
-#
-# ```math
-# \varepsilon (\omega) = 1 + \frac{\omega_p^2}{\omega_0^2  - \omega^2 - j \omega\Gamma}
-# ```
-# ```math
-# \varepsilon (\omega) = \varepsilon_\infty + \frac{(\varepsilon_s - \varepsilon_\infty) \omega_0^2}{\omega_0^2  - \omega^2 - j \omega\Gamma}
-# ```
-#
-# # Example:
-# ```julia-repl
-# omega = 0:.01:4
-# omega_p = 2.
-# omega_0 = 2.
-# gamma = .2
-#
-# m = LorentzModel(omega_p, omega_0,  gamma)
-# ε = permittivity.(m, omega)
-#
-# @show offset_static(m), offset_inf(m), peak(m)
-# @show real(ε)[1], real(ε)[end], maximum(imag(ε))
-#
-# p1 = plot(omega, real(ε), label="Re(ε(ω))")
-# p2 = plot(omega, imag(ε), label="Im(ε(ω))")
-# plot(p1, p2, layout = @layout [a; b])
-# ```
-# """
-# struct LorentzModel{T<:AbstractFloat} <: Dispersive
-#     omega_p::T
-#     omega_0::T
-#     gamma::T
-# end
-#
-# (m::LorentzModel)(omega) = 1 + m.omega_p^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
-#
-# # static ε (low frequency)
-# offset_static(m::LorentzModel) = 1 + m.omega_p^2 / m.omega_0^2
-#
-# # ε at high frequency
-# offset_inf(m::LorentzModel) = 1
-#
-# # Absorption peak (imaginary part)
-# peak(m::LorentzModel) = m.omega_p^2 / (m.omega_0 * m.gamma)
-#
-#
-# struct LorentzMode3{T<:AbstractFloat} <: Dispersive
-#     omega_p::T
-#     omega_0::T
-#     gamma::T
-# end
-#
-# (m::LorentzMode3)(omega) = m.omega_p^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
-#
-# # static ε (low frequency)
-# offset_static(m::LorentzMode3) = m.omega_p^2 / m.omega_0^2
-#
-# # ε at high frequency
-# offset_inf(m::LorentzMode3) = 0
-#
-# # Absorption peak (imaginary part)
-# peak(m::LorentzMode3) = m.omega_p^2 / (m.omega_0 * m.gamma)
-#
-# # omega = 0:.01:4
-# # omega_p = 2.
-# # omega_0 = 1.
-# # gamma = .4
-# #
-# # m = LorentzMode3(omega_p, omega_0,  gamma)
-# # ε = permittivity.(m, omega)
-# #
-# # @show offset_static(m), offset_inf(m), peak(m)
-# # @show real(ε)[1], real(ε)[end], maximum(imag(ε))
-# #
-# # p1 = plot(omega, real(ε), label="Re(ε(ω))")
-# # p2 = plot(omega, imag(ε), label="Im(ε(ω))")
-# # plot(p1, p2, layout = @layout [a; b])
-#
-# struct LorentzModel2{T<:AbstractFloat} <: Dispersive
-#     eps_s::T
-#     eps_inf::T
-#     omega_0::T
-#     gamma::T
-# end
-#
-# (m::LorentzModel2)(omega) =  m.eps_inf + (m.eps_s - m.eps_inf) * m.omega_0^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
-#
-# # static ε (low frequency)
-# offset_static(m::LorentzModel2) = m.eps_s
-#
-# # ε at high frequency
-# offset_inf(m::LorentzModel2) = m.eps_inf
-#
-# # Absorption peak (imaginary part)
-# peak(m::LorentzModel2) = (m.eps_s - m.eps_inf) * m.omega_0 /  m.gamma
-#
-#
-#
-# # omega = 0:.01:4
-# # eps_s = 4.
-# # eps_inf = 0.
-# # omega_0 = 2.
-# # gamma = .4
-# #
-# # m = LorentzModel2(eps_s, eps_inf, omega_0, gamma)
-# # ε = permittivity.(m, omega)
-# #
-# # @show offset_static(m), offset_inf(m), peak(m)
-# # @show real(ε)[1], real(ε)[end], maximum(imag(ε))
-# #
-# # p1 = plot(omega, real(ε), label="Re(ε(ω))")
-# # p2 = plot(omega, imag(ε), label="Im(ε(ω))")
-# # plot(p1, p2, layout = @layout [a; b])
-#
-#
+eps_s(m::DrudeModel) = m.eps_inf - m.omega_p^2 / m.gamma^2 + im * Inf
+eps_inf(m::DrudeModel) = m.eps_inf
+
+realroot(m::DrudeModel) = sqrt(m.omega_p^2 / m.eps_inf - m.gamma^2)
 
 
+@doc raw"""
+    LorentzModel(eps_s, eps_inf, omega_0, gamma)
+
+The Lorentz oscillator model describes interband electron transitions.
+
+```math
+\varepsilon (\omega) = \varepsilon_\infty + \frac{(\varepsilon_s - \varepsilon_\infty) \omega_0^2}{\omega_0^2  - \omega^2 - j \omega\Gamma}
+```
+
+# Example:
+```julia-repl
+eps_s = 10.
+eps_inf = 5.
+omega_0 = 1.
+gamma = .5
+
+omega = exp10.(-1:.01:2)
+
+m = LorentzModel(eps_s, eps_inf, omega_0, gamma)
+ε = m.(omega)
+
+plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1), xaxis=:log10)
+
+@show Permittivity.eps_s(m) real(ε)[1]
+@show Permittivity.eps_inf(m) real(ε)[end]
+@show Permittivity.peak(m) maximum(imag(ε))
+
+# omega = 0.1:.01:5
+# m = LorentzModel(eps_s, eps_inf, omega_0, gamma)
+# ε = m.(omega)
+# plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1))
+```
+"""
+
+struct LorentzModel{T<:AbstractFloat}
+    eps_s::T
+    eps_inf::T
+    omega_0::T
+    gamma::T
+end
+
+(m::LorentzModel)(omega) = m.eps_inf + (m.eps_s - m.eps_inf) * m.omega_0^2 / (m.omega_0^2 - omega^2 - im * omega * m.gamma);
+
+# static ε (low frequency)
+eps_s(m::LorentzModel) = m.eps_s
+
+# ε at high frequency
+eps_inf(m::LorentzModel) = m.eps_inf
+
+# Absorption peak (imaginary part)
+peak(m::LorentzModel) = (m.eps_s - m.eps_inf) * m.omega_0 / m.gamma
+
+# TODO: caluclate omega_p (plasmon frequency)
 
