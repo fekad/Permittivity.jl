@@ -3,13 +3,13 @@
 
 Interpolate values between tabulated data points.
 """
-struct PermittivityTable <: Tabulated
-    omega::Vector{Float64}
-    eps::Vector{ComplexF64}
+struct PermittivityTable{T<:AbstractFloat} <: Tabulated
+    omega::Vector{T}
+    eps::Vector{Complex{T}}
     _itp_real::Spline1D
     _itp_imag::Spline1D
 
-    function PermittivityTable(omega::Vector{Float64}, eps::Vector{ComplexF64})
+    function PermittivityTable(omega::Vector{T}, eps::Vector{Complex{T}}) where  T<:AbstractFloat
 
         inds = sortperm(omega)
 
@@ -19,7 +19,7 @@ struct PermittivityTable <: Tabulated
         # itp_real = interpolate((omega[inds],), real(eps[inds]), Gridded(Linear()))
         # itp_imag = interpolate((omega[inds],), imag(eps[inds]), Gridded(Linear()))
 
-        new(omega, eps, itp_real, itp_imag)
+        new{T}(omega, eps, itp_real, itp_imag)
     end
 end
 
