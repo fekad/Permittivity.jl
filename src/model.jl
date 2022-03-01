@@ -363,7 +363,6 @@ plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Freq
 # plot(omega, [real(ε) imag(ε)], label=["Re(ε(ω))" "Im(ε(ω))"], xlabel="Frequency", layout=(2, 1))
 ```
 """
-
 struct LorentzModel{T<:AbstractFloat}
     eps_s::T
     eps_inf::T

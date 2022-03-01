@@ -9,4 +9,5 @@ ColeDavidson
 HavriliakNegamiModel
 FreeElectronPlasmaModel
 DrudeModel
+LorentzModel
 ```
